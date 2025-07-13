@@ -17,10 +17,9 @@ app.use(express.json());
 // Enable CORS
 app.use(cors());
 
-// Mount routes (placeholder for future phases)
-// app.use('/api/students', require('./routes/students'));
-// app.use('/api/attendance', require('./routes/attendance'));
-// app.use('/api/fees', require('./routes/fees'));
+// Mount routes
+const studentRoutes = require('./routes/studentRoutes');
+app.use('/api/students', studentRoutes);
 
 // Simple test route
 app.get('/', (req, res) => {
