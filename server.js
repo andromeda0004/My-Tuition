@@ -11,30 +11,40 @@ connectDB();
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// Body parser
 app.use(express.json());
 
-// Simple test route
-app.get('/ping', (req, res) => {
-  res.json({ success: true, message: 'Server is running' });
-});
+// Enable CORS
+app.use(cors());
 
-// Define routes (to be added in future phases)
+// Mount routes (placeholder for future phases)
 // app.use('/api/students', require('./routes/students'));
 // app.use('/api/attendance', require('./routes/attendance'));
 // app.use('/api/fees', require('./routes/fees'));
 
-// Create routes folder structure
+// Simple test route
+app.get('/', (req, res) => {
+  res.send('API is running...');
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    success: false,
+    error: 'Server Error'
+  });
+});
+
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
 // Handle unhandled promise rejections
-process.on('unhandledRejection', (err, promise) => {
+process.on('unhandledRejection', (err) => {
   console.log(`Error: ${err.message}`);
   // Close server & exit process
-  process.exit(1);
+  server.close(() => process.exit(1));
 });
