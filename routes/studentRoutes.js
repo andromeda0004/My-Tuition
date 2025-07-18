@@ -5,6 +5,7 @@ const {
   createStudent,
   updateStudent,
   deleteStudent,
+  createMultipleStudents
 } = require("../controllers/studentController");
 
 const router = express.Router();
@@ -12,6 +13,10 @@ const router = express.Router();
 router.route("/")
   .get(getStudents)
   .post(createStudent);
+
+// New route for bulk student creation
+router.route("/bulk")
+  .post(createMultipleStudents);
 
 router.route("/:id")
   .get(getStudentById)

@@ -5,9 +5,17 @@ const Student = require("../models/Student");
 exports.getStudents = async (req, res) => {
   try {
     const students = await Student.find().sort({ name: 1 });
-    res.json(students);
+    res.json({
+      success: true,
+      count: students.length,
+      data: students
+    });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: "Server error", 
+      error: error.message 
+    });
   }
 };
 
@@ -31,6 +39,40 @@ exports.createStudent = async (req, res) => {
     res.status(201).json(newStudent);
   } catch (error) {
     res.status(400).json({ message: "Invalid student data", error: error.message });
+  }
+};
+
+// @desc    Create multiple students at once
+// @route   POST /api/students/bulk
+exports.createMultipleStudents = async (req, res) => {
+  try {
+    // Check if the request body is an array
+    if (!Array.isArray(req.body)) {
+      return res.status(400).json({ 
+        message: "Invalid data format. Please provide an array of student objects." 
+      });
+    }
+    
+    // Validate that the array is not empty
+    if (req.body.length === 0) {
+      return res.status(400).json({ 
+        message: "Student array cannot be empty." 
+      });
+    }
+
+    // Create multiple students
+    const students = await Student.insertMany(req.body);
+    
+    res.status(201).json({
+      success: true,
+      count: students.length,
+      data: students
+    });
+  } catch (error) {
+    res.status(400).json({ 
+      message: "Failed to create students", 
+      error: error.message 
+    });
   }
 };
 

@@ -19,7 +19,10 @@ app.use(cors());
 
 // Mount routes
 const studentRoutes = require('./routes/studentRoutes');
+const attendanceRoutes = require('./routes/attendanceRoutes');
+
 app.use('/api/students', studentRoutes);
+app.use('/api/attendance', attendanceRoutes);
 
 // Simple test route
 app.get('/', (req, res) => {
