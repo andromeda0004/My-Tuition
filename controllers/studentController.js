@@ -11,11 +11,7 @@ exports.getStudents = async (req, res) => {
       data: students
     });
   } catch (error) {
-    res.status(500).json({ 
-      success: false,
-      message: "Server error", 
-      error: error.message 
-    });
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 
@@ -24,10 +20,13 @@ exports.getStudents = async (req, res) => {
 exports.getStudentById = async (req, res) => {
   try {
     const student = await Student.findById(req.params.id);
-    if (!student) return res.status(404).json({ message: "Student not found" });
-    res.json(student);
+    if (!student) return res.status(404).json({ success: false, message: "Student not found" });
+    res.json({
+      success: true,
+      data: student
+    });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 
@@ -36,9 +35,12 @@ exports.getStudentById = async (req, res) => {
 exports.createStudent = async (req, res) => {
   try {
     const newStudent = await Student.create(req.body);
-    res.status(201).json(newStudent);
+    res.status(201).json({
+      success: true,
+      data: newStudent
+    });
   } catch (error) {
-    res.status(400).json({ message: "Invalid student data", error: error.message });
+    res.status(400).json({ success: false, message: "Invalid student data", error: error.message });
   }
 };
 
@@ -49,6 +51,7 @@ exports.createMultipleStudents = async (req, res) => {
     // Check if the request body is an array
     if (!Array.isArray(req.body)) {
       return res.status(400).json({ 
+        success: false,
         message: "Invalid data format. Please provide an array of student objects." 
       });
     }
@@ -56,6 +59,7 @@ exports.createMultipleStudents = async (req, res) => {
     // Validate that the array is not empty
     if (req.body.length === 0) {
       return res.status(400).json({ 
+        success: false,
         message: "Student array cannot be empty." 
       });
     }
@@ -70,6 +74,7 @@ exports.createMultipleStudents = async (req, res) => {
     });
   } catch (error) {
     res.status(400).json({ 
+      success: false,
       message: "Failed to create students", 
       error: error.message 
     });
@@ -85,10 +90,13 @@ exports.updateStudent = async (req, res) => {
       runValidators: true
     });
     
-    if (!updated) return res.status(404).json({ message: "Student not found" });
-    res.json(updated);
+    if (!updated) return res.status(404).json({ success: false, message: "Student not found" });
+    res.json({
+      success: true,
+      data: updated
+    });
   } catch (error) {
-    res.status(400).json({ message: "Invalid data", error: error.message });
+    res.status(400).json({ success: false, message: "Invalid data", error: error.message });
   }
 };
 
@@ -97,9 +105,9 @@ exports.updateStudent = async (req, res) => {
 exports.deleteStudent = async (req, res) => {
   try {
     const removed = await Student.findByIdAndDelete(req.params.id);
-    if (!removed) return res.status(404).json({ message: "Student not found" });
-    res.json({ message: "Student deleted" });
+    if (!removed) return res.status(404).json({ success: false, message: "Student not found" });
+    res.json({ success: true, message: "Student deleted" });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };

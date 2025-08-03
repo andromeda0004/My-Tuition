@@ -11,6 +11,9 @@ connectDB();
 
 const app = express();
 
+// Add this line to pretty-print JSON responses
+app.set('json spaces', 2);
+
 // Body parser
 app.use(express.json());
 
@@ -20,9 +23,11 @@ app.use(cors());
 // Mount routes
 const studentRoutes = require('./routes/studentRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');
+const feeRoutes = require('./routes/feeRoutes');
 
 app.use('/api/students', studentRoutes);
 app.use('/api/attendance', attendanceRoutes);
+app.use('/api/fees', feeRoutes);
 
 // Simple test route
 app.get('/', (req, res) => {
