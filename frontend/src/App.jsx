@@ -7,9 +7,9 @@ import Layout from './components/layouts/Layout';
 
 // Pages
 import Dashboard from './pages/Dashboard';
+import Students from './pages/Students';
 
 // Placeholder components (will be implemented in future phases)
-const Students = () => <div className="p-4"><h1 className="text-2xl font-bold mb-4">Students</h1><p>Student management will be implemented in the next phase.</p></div>;
 const Attendance = () => <div className="p-4"><h1 className="text-2xl font-bold mb-4">Attendance</h1><p>Attendance tracking will be implemented in the next phase.</p></div>;
 const Fees = () => <div className="p-4"><h1 className="text-2xl font-bold mb-4">Fees</h1><p>Fee management will be implemented in the next phase.</p></div>;
 const Reports = () => <div className="p-4"><h1 className="text-2xl font-bold mb-4">Reports</h1><p>Reporting features will be implemented in the next phase.</p></div>;

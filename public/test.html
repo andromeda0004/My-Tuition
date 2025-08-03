@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Student API</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+    button { padding: 10px; margin: 10px 0; }
+    pre { background: #f4f4f4; padding: 10px; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Student API Tester</h1>
+  
+  <h2>Get All Students</h2>
+  <button onclick="getStudents()">Fetch Students</button>
+  <pre id="studentsList">Results will appear here...</pre>
+  
+  <script>
+    async function getStudents() {
+      const response = await fetch('/api/students');
+      const data = await response.json();
+      document.getElementById('studentsList').textContent = JSON.stringify(data, null, 2);
+    }
+  </script>
+</body>
+</html>

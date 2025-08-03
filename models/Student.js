@@ -12,14 +12,40 @@ const StudentSchema = new Schema({
     required: [true, 'Please add a phone number'],
     trim: true
   },
+  grade: {
+    type: Number,
+    required: [true, 'Please specify student grade'],
+    min: 1,
+    max: 10
+  },
   batch: {
     type: String,
     required: [true, 'Please add a batch'],
     trim: true
   },
+  // For 9th-10th: yearly fees, For 8th and below: monthly fees
+  feeStructure: {
+    type: String,
+    enum: ['monthly', 'yearly'],
+    default: function() {
+      return this.grade >= 9 ? 'yearly' : 'monthly';
+    }
+  },
+  monthlyFees: {
+    type: Number,
+    default: 0,
+    min: [0, 'Fees cannot be negative']
+  },
+  yearlyFees: {
+    type: Number,
+    default: 0,
+    min: [0, 'Fees cannot be negative']
+  },
   totalFees: {
     type: Number,
-    required: [true, 'Please add total fees'],
+    default: function() {
+      return this.feeStructure === 'yearly' ? this.yearlyFees : this.monthlyFees * 12;
+    },
     min: [0, 'Fees cannot be negative']
   },
   paidFees: {
@@ -42,6 +68,55 @@ const StudentSchema = new Schema({
   timestamps: true,
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
+});
+
+// Update fee structure when grade changes
+StudentSchema.pre('save', function(next) {
+  // Set fee structure based on grade
+  this.feeStructure = this.grade >= 9 ? 'yearly' : 'monthly';
+  
+  // Calculate total fees based on fee structure
+  this.totalFees = this.feeStructure === 'yearly' 
+    ? this.yearlyFees 
+    : this.monthlyFees * 12;
+  
+  // Ensure balance fees is calculated correctly
+  this.balanceFees = this.totalFees - this.paidFees;
+  
+  next();
+});
+
+// Handle updates
+StudentSchema.pre('findOneAndUpdate', function(next) {
+  const update = this.getUpdate();
+  const grade = update.grade || update.$set?.grade;
+  
+  // If grade is updated, update fee structure
+  if (grade !== undefined) {
+    const feeStructure = grade >= 9 ? 'yearly' : 'monthly';
+    
+    if (!update.$set) update.$set = {};
+    update.$set.feeStructure = feeStructure;
+    
+    // Recalculate total fees if needed
+    if (feeStructure === 'yearly' && update.$set.yearlyFees !== undefined) {
+      update.$set.totalFees = update.$set.yearlyFees;
+    } else if (feeStructure === 'monthly' && update.$set.monthlyFees !== undefined) {
+      update.$set.totalFees = update.$set.monthlyFees * 12;
+    }
+  }
+
+  // Always ensure balance is calculated
+  if (update.$set?.totalFees !== undefined || update.$set?.paidFees !== undefined) {
+    const totalFees = update.$set?.totalFees;
+    const paidFees = update.$set?.paidFees;
+    
+    if (totalFees !== undefined && paidFees !== undefined) {
+      update.$set.balanceFees = totalFees - paidFees;
+    }
+  }
+  
+  next();
 });
 
 // Virtual for getting all attendance records

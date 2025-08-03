@@ -85,12 +85,34 @@ exports.createMultipleStudents = async (req, res) => {
 // @route   PUT /api/students/:id
 exports.updateStudent = async (req, res) => {
   try {
-    const updated = await Student.findByIdAndUpdate(req.params.id, req.body, { 
-      new: true,
-      runValidators: true
-    });
+    const { totalFees, paidFees } = req.body;
     
-    if (!updated) return res.status(404).json({ success: false, message: "Student not found" });
+    // If fees are being updated, calculate the balance
+    if (totalFees !== undefined || paidFees !== undefined) {
+      // Get current student data if needed
+      const currentStudent = await Student.findById(req.params.id);
+      if (!currentStudent) {
+        return res.status(404).json({ success: false, message: "Student not found" });
+      }
+      
+      // Calculate new values using existing data for any missing fields
+      const newTotalFees = totalFees !== undefined ? totalFees : currentStudent.totalFees;
+      const newPaidFees = paidFees !== undefined ? paidFees : currentStudent.paidFees;
+      
+      // Add balanceFees to the update
+      req.body.balanceFees = newTotalFees - newPaidFees;
+    }
+    
+    const updated = await Student.findByIdAndUpdate(
+      req.params.id, 
+      req.body, 
+      { new: true, runValidators: true }
+    );
+    
+    if (!updated) {
+      return res.status(404).json({ success: false, message: "Student not found" });
+    }
+    
     res.json({
       success: true,
       data: updated
@@ -109,5 +131,26 @@ exports.deleteStudent = async (req, res) => {
     res.json({ success: true, message: "Student deleted" });
   } catch (error) {
     res.status(500).json({ success: false, message: "Server error", error: error.message });
+  }
+};
+
+// @desc    Get all students
+// @route   GET /api/students
+exports.getAllStudents = async (req, res) => {
+  try {
+    const students = await Student.find().sort({ name: 1 });
+    
+    res.status(200).json({
+      success: true,
+      count: students.length,
+      data: students
+    });
+  } catch (error) {
+    console.error('Error fetching students:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while retrieving students',
+      error: error.message
+    });
   }
 };

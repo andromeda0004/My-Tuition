@@ -6,12 +6,13 @@ const {
   createStudent,
   updateStudent,
   deleteStudent,
-  createMultipleStudents
+  createMultipleStudents,
+  getAllStudents
 } = require('../controllers/studentController');
 
 // Define routes
 router.route('/')
-  .get(getStudents)
+  .get(getAllStudents)
   .post(createStudent);
 
 router.route('/bulk')
