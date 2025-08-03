@@ -2,51 +2,109 @@ const Attendance = require('../models/Attendance');
 const Student = require('../models/Student');
 const mongoose = require('mongoose');
 
-// @desc    Mark attendance for students
-// @route   POST /api/attendance
+// @desc Mark attendance for multiple students
+// @route POST /api/attendance
 exports.markAttendance = async (req, res) => {
   try {
     const { date, records } = req.body;
     
-    // Validate request body
-    if (!date || !records || !Array.isArray(records)) {
+    // Validate request data
+    if (!date || !Array.isArray(records) || records.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "Please provide date and records array"
+        message: "Invalid data format. Please provide date and records array."
+      });
+    }
+
+    // First, fetch all existing attendance records for this date to avoid duplicates
+    const dayStart = new Date(date);
+    dayStart.setHours(0, 0, 0, 0);
+    
+    const dayEnd = new Date(date);
+    dayEnd.setHours(23, 59, 59, 999);
+    
+    // Fetch existing attendance records for this date
+    const existingRecords = await Attendance.find({
+      date: { $gte: dayStart, $lte: dayEnd }
+    });
+    
+    // Create a map of existing records for faster lookup
+    const existingMap = {};
+    existingRecords.forEach(record => {
+      existingMap[record.studentId.toString()] = record._id;
+    });
+    
+    // Process records - separate into updates and inserts
+    const operations = [];
+    
+    for (const record of records) {
+      if (!record.studentId) continue;
+      
+      // Parse the time if provided, otherwise use current time
+      let attendanceTime;
+      if (record.time) {
+        const [hours, minutes] = record.time.split(':').map(Number);
+        attendanceTime = new Date(date);
+        attendanceTime.setHours(hours, minutes, 0, 0);
+      } else {
+        attendanceTime = new Date();
+      }
+      
+      // Check if record exists for this student on this day
+      const studentId = record.studentId.toString();
+      
+      if (existingMap[studentId]) {
+        // Update existing record
+        operations.push({
+          updateOne: {
+            filter: { _id: existingMap[studentId] },
+            update: { 
+              $set: { 
+                status: record.status,
+                date: attendanceTime 
+              } 
+            }
+          }
+        });
+      } else {
+        // Insert new record
+        operations.push({
+          insertOne: {
+            document: {
+              studentId: record.studentId,
+              date: attendanceTime,
+              status: record.status
+            }
+          }
+        });
+      }
+    }
+    
+    if (operations.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No valid attendance records to process"
       });
     }
     
-    // Ensure the date is treated as UTC midnight to avoid timezone issues
-    const attendanceDate = new Date(`${date}T00:00:00.000Z`);
-    
-    // Process each attendance record using bulkWrite for efficiency
-    const operations = records.map(record => ({
-      updateOne: {
-        filter: { 
-          studentId: record.studentId, 
-          date: attendanceDate 
-        },
-        update: { $set: { status: record.status } },
-        upsert: true
-      }
-    }));
-
+    // Execute bulk operation
     const result = await Attendance.bulkWrite(operations);
     
     res.status(200).json({
       success: true,
       message: "Attendance marked successfully",
-      result: {
+      data: {
+        matched: result.matchedCount,
         modified: result.modifiedCount,
-        upserted: result.upsertedCount,
-        total: records.length
+        inserted: result.insertedCount
       }
     });
   } catch (error) {
-    res.status(500).json({ 
+    console.error('Attendance marking error:', error);
+    res.status(500).json({
       success: false,
-      message: "Failed to mark attendance", 
-      error: error.message 
+      message: "Error marking attendance",
+      error: error.message
     });
   }
 };
@@ -94,22 +152,28 @@ exports.getAttendanceByDate = async (req, res) => {
     })
     .populate({
       path: 'studentId',
-      select: 'name roll_number batch class phone'
+      select: 'name grade batch phone'
     })
+    .sort({ date: 1 }) // Sort by time
     .lean();
     
-    // Format the response data
+    // Format the response data with timestamp information
     const formattedAttendance = attendance.map(record => {
+      // Get the full date with time
+      const attendanceDate = new Date(record.date);
+      
       return {
         attendanceId: record._id,
-        date: new Date(record.date).toISOString().split('T')[0],
+        date: attendanceDate.toISOString().split('T')[0],
+        time: attendanceDate.toTimeString().split(' ')[0], // HH:MM:SS format
+        timestamp: attendanceDate.toISOString(), // Full ISO timestamp
+        formattedDateTime: attendanceDate.toLocaleString(), // Readable format
         status: record.status,
         student: record.studentId ? {
           id: record.studentId._id,
           name: record.studentId.name,
-          rollNumber: record.studentId.roll_number,
+          grade: record.studentId.grade,
           batch: record.studentId.batch,
-          class: record.studentId.class,
           phone: record.studentId.phone
         } : 'Student not found'
       };
@@ -303,3 +367,4 @@ exports.deleteAllAttendance = async (req, res) => {
     });
   }
 };
+
