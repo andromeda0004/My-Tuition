@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-150 ease-in-out;
+  }
+  
+  .btn-primary {
+    @apply bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+  }
+  
+  .btn-secondary {
+    @apply bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-400;
+  }
+  
+  .btn-danger {
+    @apply bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+  }
+  
+  .form-input {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500;
+  }
+  
+  .card {
+    @apply bg-white rounded-lg shadow-md p-6;
+  }
+  
+  /* Mobile-friendly cards and grids */
+  .card-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4;
+  }
+  
+  /* Mobile-optimized table */
+  .responsive-table {
+    @apply w-full;
+  }
+  
+  .responsive-table thead {
+    @apply hidden sm:table-header-group;
+  }
+  
+  .responsive-table tbody tr {
+    @apply block sm:table-row mb-4 sm:mb-0 shadow sm:shadow-none rounded sm:rounded-none;
+  }
+  
+  .responsive-table tbody td {
+    @apply block sm:table-cell text-right sm:text-left py-2 px-4;
+  }
+  
+  .responsive-table tbody td::before {
+    @apply content-[attr(data-label)] float-left sm:hidden font-semibold;
+  }
+}
+
+body {
+  @apply bg-gray-50 text-gray-900 antialiased;
+}
+
+/* Add touch-friendly tap targets */
+button, a {
+  @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+}
+
+/* Improve form elements on mobile */
+input, select, textarea {
+  @apply text-base; /* Prevents zoom on iOS */
+}
+
+/* Fix vh units on mobile */
+.h-screen {
+  height: 100vh; /* fallback */
+  height: -webkit-fill-available;
+}
