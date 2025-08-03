@@ -24,14 +24,15 @@ app.use(cors());
 const studentRoutes = require('./routes/studentRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');
 const feeRoutes = require('./routes/feeRoutes');
-const dashboardRoutes = require('./routes/dashboardRoutes');
-const whatsappRoutes = require('./routes/whatsappRoutes');
 
+// Only mount routes that exist and are properly exported
 app.use('/api/students', studentRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/fees', feeRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/whatsapp', whatsappRoutes);
+
+// Comment out routes that may not exist yet
+// If you have a dashboardRoutes file, make sure it's created and properly exporting a router
+// app.use('/api/dashboard', dashboardRoutes);
 
 // Simple test route
 app.get('/', (req, res) => {
