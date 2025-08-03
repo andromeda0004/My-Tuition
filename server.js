@@ -24,10 +24,12 @@ app.use(cors());
 const studentRoutes = require('./routes/studentRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');
 const feeRoutes = require('./routes/feeRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 
 app.use('/api/students', studentRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/fees', feeRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Simple test route
 app.get('/', (req, res) => {
